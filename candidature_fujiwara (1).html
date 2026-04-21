@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidature — Clan Fujiwara</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Cinzel:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #04060a;
+  --white: #e8eff4;
+  --silver: #9ab0c0;
+  --silver2: #c8dde8;
+  --accent: #2a5a7a;
+  --accent2: #3a80aa;
+  --accent3: #5aa0c8;
+  --glow: rgba(58,128,170,0.4);
+  --border: rgba(58,128,170,0.12);
+  --border2: rgba(58,128,170,0.28);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--white); font-family:'Cormorant Garamond',serif; overflow-x:hidden; cursor:none; }
+
+/* ─── CURSEUR ─── */
+#cursor {
+  width:10px; height:10px; border-radius:50%;
+  background:var(--accent2);
+  position:fixed; pointer-events:none; z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:width 0.2s, height 0.2s;
+  box-shadow:0 0 12px var(--glow), 0 0 28px rgba(58,128,170,0.2);
+  mix-blend-mode:screen;
+}
+#cursor-ring {
+  width:32px; height:32px; border-radius:50%;
+  border:1px solid rgba(58,128,170,0.4);
+  position:fixed; pointer-events:none; z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:width 0.35s ease, height 0.35s ease, border-color 0.3s;
+}
+body:has(a:hover) #cursor,
+body:has(.hover-target:hover) #cursor { width:18px; height:18px; }
+body:has(a:hover) #cursor-ring,
+body:has(.hover-target:hover) #cursor-ring { width:50px; height:50px; border-color:rgba(58,128,170,0.75); }
+
+#rune-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; }
+
+body::after {
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+  pointer-events:none; z-index:9999;
+}
+
+/* ═══ LOADING ═══ */
+#loading {
+  position:fixed; inset:0; z-index:200; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:opacity 0.9s;
+}
+#loading.hide { opacity:0; pointer-events:none; }
+.load-eye-label { font-family:'Cinzel',serif; font-size:0.43rem; letter-spacing:6px; color:rgba(58,128,170,0.2); text-transform:uppercase; margin-bottom:2.5rem; }
+.load-box {
+  border:1px solid rgba(58,128,170,0.15); padding:3rem 3.5rem; text-align:center;
+  position:relative; max-width:480px; width:90%; background:rgba(58,128,170,0.01);
+}
+.load-box::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(58,128,170,0.5),transparent); }
+.load-glyph-anim { margin:0 auto 1.5rem; display:block; animation:glyphPulse 3s ease-in-out infinite; }
+@keyframes glyphPulse { 0%,100%{transform:scale(1) rotate(0deg); opacity:0.7} 50%{transform:scale(1.04) rotate(-2deg); opacity:1} }
+.load-title { font-family:'Cinzel',serif; font-size:clamp(0.65rem,2vw,0.9rem); letter-spacing:5px; color:var(--silver2); text-transform:uppercase; margin-bottom:0.4rem; }
+.load-sub { font-family:'Cormorant Garamond',serif; font-size:0.9rem; color:rgba(58,128,170,0.35); font-style:italic; margin-bottom:2rem; letter-spacing:2px; }
+.load-bar-wrap { width:100%; height:1px; background:rgba(58,128,170,0.08); margin-bottom:0.7rem; overflow:hidden; }
+.load-bar { height:100%; background:linear-gradient(90deg,transparent,var(--accent2),transparent); width:0%; transition:width 0.1s; }
+.load-percent { font-family:'Cinzel',serif; font-size:0.48rem; letter-spacing:3px; color:rgba(58,128,170,0.3); margin-bottom:2rem; }
+.load-lines { text-align:left; width:100%; margin-bottom:2rem; }
+.load-line { font-family:'Cinzel',serif; font-size:0.4rem; letter-spacing:2px; color:rgba(58,128,170,0.25); line-height:2; opacity:0; transition:opacity 0.3s; }
+.load-line.show { opacity:1; }
+.load-line .ok { color:rgba(80,140,100,0.65); }
+.load-line .dot { animation:blink 0.8s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.load-btn {
+  padding:0.7rem 2.5rem; background:transparent;
+  border:1px solid rgba(58,128,170,0.22); color:var(--accent2);
+  font-family:'Cinzel',serif; font-size:0.52rem; letter-spacing:4px;
+  text-transform:uppercase; cursor:none; transition:all 0.3s;
+  opacity:0; pointer-events:none;
+}
+.load-btn.ready { opacity:1; pointer-events:all; }
+.load-btn:hover { background:rgba(58,128,170,0.06); border-color:rgba(58,128,170,0.5); box-shadow:0 0 20px rgba(58,128,170,0.1); }
+
+#main-content { display:none; }
+#main-content.show { display:block; }
+
+/* ═══ NAV ═══ */
+nav {
+  position:fixed; top:0; width:100%; z-index:100;
+  background:linear-gradient(180deg,rgba(4,6,10,0.97) 0%,transparent 100%);
+  padding:0.5rem 2.5rem 1rem;
+  border-bottom:1px solid rgba(58,128,170,0.07);
+  backdrop-filter:blur(4px);
+}
+.by-line { font-family:'Cinzel',serif; font-size:0.5rem; letter-spacing:4px; color:rgba(58,128,170,0.3); margin-bottom:0.3rem; }
+.by-line span { color:var(--accent2); text-shadow:0 0 10px rgba(58,128,170,0.3); }
+.nav-inner { display:flex; justify-content:space-between; align-items:center; }
+.nav-logo { font-family:'Cinzel',serif; font-size:0.95rem; color:var(--accent2); text-shadow:0 0 15px rgba(58,128,170,0.25); letter-spacing:4px; font-weight:600; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a {
+  color:rgba(58,128,170,0.38); text-decoration:none; font-family:'Cinzel',serif;
+  font-size:0.55rem; letter-spacing:2px; text-transform:uppercase;
+  transition:color 0.3s, text-shadow 0.3s; position:relative;
+}
+.nav-links a::after {
+  content:''; position:absolute; bottom:-4px; left:0; right:0;
+  height:1px; background:var(--accent2); transform:scaleX(0);
+  transition:transform 0.3s; box-shadow:0 0 8px var(--glow);
+}
+.nav-links a:hover { color:var(--accent2); text-shadow:0 0 10px var(--glow); }
+.nav-links a:hover::after { transform:scaleX(1); }
+
+/* ═══ HERO ═══ */
+#hero {
+  position:relative; min-height:100vh;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  text-align:center; padding:8rem 2rem 4rem; z-index:2;
+}
+#hero::before {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(20,60,90,0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 40% at 50% 100%, rgba(10,30,55,0.15) 0%, transparent 60%);
+  z-index:-1;
+}
+.hero-by { font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:5px; color:rgba(58,128,170,0.4); margin-bottom:0.6rem; opacity:0; animation:fadeUp 0.8s 0.35s forwards; }
+.hero-by span { color:var(--accent2); text-shadow:0 0 12px rgba(58,128,170,0.3); }
+.hero-title { font-family:'Cinzel',serif; font-size:clamp(2.2rem,7vw,6rem); font-weight:900; line-height:0.95; opacity:0; animation:fadeUp 1s 0.5s forwards; letter-spacing:6px; }
+.hero-title .first { color:var(--white); }
+.hero-title .last { color:var(--accent2); text-shadow:0 0 30px rgba(58,128,170,0.4), 0 0 60px rgba(42,90,122,0.2); }
+.hero-sub { font-family:'Cinzel',serif; font-size:clamp(0.55rem,1.4vw,0.78rem); letter-spacing:6px; color:rgba(58,128,170,0.3); text-transform:uppercase; margin-top:1.5rem; opacity:0; animation:fadeUp 1s 0.9s forwards; }
+.hero-divider { width:160px; height:1px; background:linear-gradient(90deg,transparent,var(--accent2),transparent); margin:2rem auto; opacity:0; animation:fadeIn 1s 1.2s forwards; box-shadow:0 0 10px rgba(58,128,170,0.25); }
+.hero-tag-box {
+  display:inline-block; border:1px solid rgba(58,128,170,0.2); padding:0.5rem 2rem;
+  font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:4px; color:var(--accent2);
+  opacity:0; animation:fadeUp 1s 1.4s forwards; background:rgba(58,128,170,0.03);
+  transition:background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+.hero-tag-box:hover { background:rgba(58,128,170,0.07); border-color:rgba(58,128,170,0.4); box-shadow:0 0 20px rgba(58,128,170,0.1), inset 0 0 20px rgba(58,128,170,0.03); }
+
+/* ═══ SECTIONS ═══ */
+.section-wrap { position:relative; z-index:2; padding:6rem 2rem; max-width:950px; margin:0 auto; }
+.section-header { text-align:center; margin-bottom:3.5rem; }
+.section-label { font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:6px; color:var(--accent); text-transform:uppercase; margin-bottom:0.7rem; display:block; }
+.section-title { font-family:'Cinzel',serif; font-size:clamp(1.4rem,3.2vw,2.4rem); color:var(--white); font-weight:600; letter-spacing:3px; }
+.section-title span { color:var(--accent2); text-shadow:0 0 15px rgba(58,128,170,0.2); }
+.section-line { width:55px; height:1px; background:var(--accent); margin:1.2rem auto; box-shadow:0 0 8px rgba(42,90,122,0.4); }
+
+/* ═══ CLAN LORE BLOCK ═══ */
+.clan-lore {
+  border:1px solid rgba(58,128,170,0.1); padding:3rem; position:relative; overflow:hidden;
+  background:linear-gradient(135deg,rgba(8,14,22,0.98),rgba(4,8,16,0.99));
+  transition:border-color 0.4s, box-shadow 0.4s;
+}
+.clan-lore:hover { border-color:rgba(58,128,170,0.25); box-shadow:0 0 50px rgba(58,128,170,0.05); }
+.clan-lore::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent2),transparent); }
+.clan-lore-title { font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:5px; color:var(--accent2); text-transform:uppercase; display:block; margin-bottom:2.5rem; }
+.clan-lore-text { font-size:1.08rem; line-height:2.1; color:rgba(160,200,220,0.6); }
+.clan-lore-text p { margin-bottom:1.5rem; }
+.clan-lore-text p:last-child { margin-bottom:0; }
+.clan-hl { color:var(--accent3); font-style:italic; }
+.lore-sep { display:flex; align-items:center; gap:1rem; margin:1.8rem 0; }
+.lore-sep::before { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(58,128,170,0.15)); }
+.lore-sep::after  { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(58,128,170,0.15),transparent); }
+.lore-sep span { color:var(--accent); font-size:0.85rem; }
+
+/* ═══ IDENTITY CARD ═══ */
+.identity-card {
+  background:linear-gradient(135deg,rgba(8,14,22,0.97),rgba(4,8,16,0.98));
+  border:1px solid rgba(58,128,170,0.15); padding:3rem; position:relative; overflow:hidden;
+  transition:border-color 0.4s, box-shadow 0.4s;
+}
+.identity-card:hover { border-color:rgba(58,128,170,0.3); box-shadow:0 0 40px rgba(58,128,170,0.06); }
+.identity-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--accent2),transparent); }
+.identity-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:2rem; }
+@media(max-width:600px){ .identity-grid{grid-template-columns:1fr 1fr;} }
+.id-item {
+  text-align:center; padding:1.2rem 1rem; border:1px solid rgba(58,128,170,0.07);
+  background:rgba(58,128,170,0.02); position:relative; overflow:hidden;
+  transition:border-color 0.3s, background 0.3s, transform 0.3s;
+}
+.id-item::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at center, rgba(58,128,170,0.06) 0%, transparent 70%);
+  opacity:0; transition:opacity 0.3s;
+}
+.id-item:hover { border-color:rgba(58,128,170,0.22); background:rgba(58,128,170,0.04); transform:translateY(-2px); }
+.id-item:hover::before { opacity:1; }
+.id-label { font-family:'Cinzel',serif; font-size:0.5rem; letter-spacing:3px; color:var(--accent); text-transform:uppercase; display:block; margin-bottom:0.4rem; transition:color 0.3s; }
+.id-item:hover .id-label { color:var(--accent3); }
+.id-value { font-size:1.05rem; color:var(--white); }
+.clan-banner {
+  text-align:center; padding:1.2rem; background:rgba(58,128,170,0.03);
+  border:1px solid rgba(58,128,170,0.1); margin-top:1.5rem;
+  transition:background 0.3s, border-color 0.3s;
+}
+.clan-banner:hover { background:rgba(58,128,170,0.07); border-color:rgba(58,128,170,0.2); }
+.clan-banner p { font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:4px; color:var(--accent2); text-transform:uppercase; }
+
+/* ═══ OBJECTIFS ═══ */
+.obj-list { margin-top:2.5rem; }
+.obj-item {
+  display:flex; gap:1.8rem; align-items:flex-start; padding:1.8rem;
+  border-bottom:1px solid rgba(58,128,170,0.05);
+  transition:background 0.35s, box-shadow 0.35s;
+  position:relative;
+}
+.obj-item::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:0;
+  background:linear-gradient(180deg, rgba(58,128,170,0.07) 0%, transparent 100%);
+  transition:width 0.4s;
+}
+.obj-item:hover { background:rgba(58,128,170,0.03); box-shadow:inset 3px 0 0 rgba(58,128,170,0.5); }
+.obj-item:hover::before { width:100%; }
+.obj-num {
+  font-family:'Cinzel',serif; font-size:2rem;
+  color:rgba(58,128,170,0.1); min-width:50px; line-height:1; text-align:center; font-weight:900;
+  transition:color 0.3s, text-shadow 0.3s;
+}
+.obj-item:hover .obj-num { color:rgba(58,128,170,0.3); text-shadow:0 0 15px rgba(58,128,170,0.2); }
+.obj-title {
+  font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:3px; color:var(--accent2);
+  text-transform:uppercase; margin-bottom:0.6rem; display:block;
+  transition:color 0.3s, text-shadow 0.3s;
+}
+.obj-item:hover .obj-title { color:var(--accent3); text-shadow:0 0 10px rgba(90,160,200,0.3); }
+.obj-desc { font-size:1rem; color:rgba(160,200,220,0.45); line-height:1.9; }
+
+/* ═══ CONSEIL CARD ═══ */
+.conseil-card {
+  background:linear-gradient(135deg, rgba(6,12,20,0.98), rgba(10,18,28,0.95));
+  border:1px solid rgba(58,128,170,0.2);
+  padding:2.5rem; position:relative; overflow:hidden; margin-top:1rem;
+  transition:border-color 0.4s, box-shadow 0.4s;
+}
+.conseil-card:hover { border-color:rgba(58,128,170,0.38); box-shadow:0 0 40px rgba(58,128,170,0.07); }
+.conseil-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent2),var(--accent3),var(--accent2),transparent);
+  box-shadow:0 0 15px rgba(58,128,170,0.3);
+}
+.conseil-card::after { content:'⚖'; position:absolute; bottom:-1rem; right:1.5rem; font-size:6rem; color:rgba(58,128,170,0.04); line-height:1; transition:color 0.5s; }
+.conseil-card:hover::after { color:rgba(58,128,170,0.08); }
+.conseil-tag { display:inline-block; font-family:'Cinzel',serif; font-size:0.45rem; letter-spacing:4px; color:var(--accent3); text-transform:uppercase; border:1px solid rgba(90,160,200,0.3); padding:0.3rem 0.8rem; margin-bottom:1.2rem; background:rgba(90,160,200,0.04); }
+.conseil-title { font-family:'Cinzel',serif; font-size:0.85rem; letter-spacing:3px; color:var(--white); text-transform:uppercase; margin-bottom:0.5rem; display:block; }
+.conseil-subtitle { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.1rem; color:rgba(160,200,220,0.4); margin-bottom:2rem; display:block; }
+.conseil-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.8rem; }
+@media(max-width:600px){ .conseil-grid{grid-template-columns:1fr;} }
+.conseil-block {
+  padding:1.2rem; border:1px solid rgba(58,128,170,0.1); background:rgba(58,128,170,0.02);
+  transition:border-color 0.3s, background 0.3s, transform 0.3s;
+}
+.conseil-block:hover { border-color:rgba(58,128,170,0.22); background:rgba(58,128,170,0.05); transform:translateY(-2px); }
+.conseil-block-label { font-family:'Cinzel',serif; font-size:0.48rem; letter-spacing:3px; color:var(--accent); text-transform:uppercase; display:block; margin-bottom:0.6rem; transition:color 0.3s; }
+.conseil-block:hover .conseil-block-label { color:var(--accent2); }
+.conseil-block-text { font-size:0.95rem; color:rgba(160,200,220,0.5); line-height:1.8; }
+.conseil-block-text strong { color:var(--accent2); font-style:italic; font-weight:400; }
+
+/* ═══ XP ═══ */
+.xp-list { list-style:none; margin-top:1.5rem; }
+.xp-list li {
+  display:flex; align-items:center; gap:1.2rem; padding:1rem 1.2rem;
+  border-bottom:1px solid rgba(58,128,170,0.05);
+  font-size:1.05rem; color:rgba(160,200,220,0.5);
+  transition:color 0.3s, padding-left 0.3s; position:relative;
+}
+.xp-list li::before { content:'◈'; color:rgba(58,128,170,0.2); font-size:0.6rem; flex-shrink:0; transition:color 0.3s; }
+.xp-list li::after {
+  content:''; position:absolute; left:0; bottom:0; top:0; width:0;
+  background:linear-gradient(90deg, rgba(58,128,170,0.06), transparent);
+  transition:width 0.35s;
+}
+.xp-list li:hover { color:rgba(160,200,220,0.9); padding-left:2rem; }
+.xp-list li:hover::before { color:var(--accent2); }
+.xp-list li:hover::after { width:100%; }
+
+/* ═══ FOOTER ═══ */
+footer { position:relative; z-index:2; text-align:center; padding:4rem 2rem; border-top:1px solid rgba(58,128,170,0.06); }
+.footer-logo { font-family:'Cinzel',serif; font-size:1.3rem; color:rgba(58,128,170,0.15); letter-spacing:6px; font-weight:600; transition:color 0.5s; }
+.footer-logo:hover { color:rgba(58,128,170,0.38); }
+.footer-sub { font-family:'Cinzel',serif; font-size:0.5rem; letter-spacing:4px; color:rgba(58,128,170,0.1); text-transform:uppercase; margin-top:0.5rem; }
+
+/* REVEAL */
+.reveal { opacity:0; transform:translateY(22px); transition:opacity 0.9s,transform 0.9s; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@media(max-width:600px){ .nav-links{display:none;} }
+
+/* TOOLTIP */
+[data-tip] { position:relative; }
+[data-tip]::after {
+  content:attr(data-tip);
+  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%) translateY(4px);
+  background:rgba(4,8,16,0.96); border:1px solid rgba(58,128,170,0.2);
+  color:var(--silver2); font-family:'Cinzel',serif; font-size:0.4rem; letter-spacing:2px;
+  padding:0.35rem 0.8rem; white-space:nowrap; pointer-events:none;
+  opacity:0; transition:opacity 0.25s, transform 0.25s; z-index:50;
+}
+[data-tip]:hover::after { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* SCAN LINE */
+.section-wrap::before {
+  content:''; position:absolute; left:0; right:0; top:0; height:1px;
+  background:linear-gradient(90deg, transparent 0%, rgba(58,128,170,0.12) 50%, transparent 100%);
+  animation:scanline 10s linear infinite; pointer-events:none; z-index:0;
+}
+@keyframes scanline {
+  0% { transform:translateY(0); opacity:0; }
+  10% { opacity:1; } 90% { opacity:1; }
+  100% { transform:translateY(100vh); opacity:0; }
+}
+
+/* LORE END */
+.lore-end {
+  margin-top:2.5rem; text-align:center; padding:1rem;
+  border:1px dashed rgba(58,128,170,0.12); background:rgba(58,128,170,0.02);
+  transition:background 0.3s, border-color 0.3s;
+}
+.lore-end:hover { background:rgba(58,128,170,0.05); border-color:rgba(58,128,170,0.28); }
+.lore-end p { font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:5px; color:rgba(58,128,170,0.3); text-transform:uppercase; }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="rune-canvas"></canvas>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-eye-label">◈ &nbsp; Archives Clan Fujiwara · ATG Jujutsu Kaizen &nbsp; ◈</div>
+  <div class="load-box">
+    <svg class="load-glyph-anim" width="100" height="80" viewBox="0 0 100 80" fill="none">
+      <circle cx="50" cy="40" r="34" stroke="rgba(58,128,170,0.22)" stroke-width="0.8"/>
+      <circle cx="50" cy="40" r="22" stroke="rgba(58,128,170,0.12)" stroke-width="0.5"/>
+      <rect x="36" y="28" width="28" height="24" rx="1" stroke="rgba(58,128,170,0.35)" stroke-width="0.8" fill="none"/>
+      <line x1="40" y1="34" x2="60" y2="34" stroke="rgba(58,128,170,0.3)" stroke-width="0.6"/>
+      <line x1="40" y1="38" x2="60" y2="38" stroke="rgba(58,128,170,0.2)" stroke-width="0.5"/>
+      <line x1="40" y1="42" x2="55" y2="42" stroke="rgba(58,128,170,0.2)" stroke-width="0.5"/>
+      <line x1="40" y1="46" x2="58" y2="46" stroke="rgba(58,128,170,0.15)" stroke-width="0.4"/>
+      <line x1="50" y1="6" x2="50" y2="19" stroke="rgba(58,128,170,0.4)" stroke-width="0.8"/>
+      <line x1="50" y1="61" x2="50" y2="74" stroke="rgba(58,128,170,0.2)" stroke-width="0.6"/>
+      <line x1="16" y1="40" x2="27" y2="40" stroke="rgba(58,128,170,0.2)" stroke-width="0.6"/>
+      <line x1="73" y1="40" x2="84" y2="40" stroke="rgba(58,128,170,0.2)" stroke-width="0.6"/>
+      <circle cx="50" cy="7" r="1.2" fill="rgba(58,128,170,0.5)"/>
+    </svg>
+    <div class="load-title">Archive Dossier de Candidature</div>
+    <div class="load-sub">Clan Fujiwara · Archivistes Occultes</div>
+    <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
+    <div class="load-percent" id="loadPercent">0%</div>
+    <div class="load-lines">
+      <div class="load-line" id="ll1">› Connexion aux archives du clan Fujiwara<span class="dot">...</span></div>
+      <div class="load-line" id="ll2">› Vérification des sceaux de stabilisation <span class="ok">[ OK ]</span></div>
+      <div class="load-line" id="ll3">› Chargement du dossier de candidature<span class="dot">...</span></div>
+      <div class="load-line" id="ll4">› Analyse des rituels de scellement <span class="ok">[ OK ]</span></div>
+      <div class="load-line" id="ll5">› Consultation des archives occultes<span class="dot">...</span></div>
+      <div class="load-line" id="ll6">› Accès autorisé <span class="ok">[ OK ]</span></div>
+    </div>
+    <button class="load-btn" id="loadBtn" onclick="enterSite()">◈ &nbsp; Accéder au Dossier &nbsp; ◈</button>
+  </div>
+</div>
+
+<div id="main-content">
+
+<!-- NAV -->
+<nav>
+  <div class="by-line">Dossier officiel &mdash; <span>École d'Hokkaido</span></div>
+  <div class="nav-inner">
+    <div class="nav-logo">◈ Fujiwara</div>
+    <ul class="nav-links">
+      <li><a href="#identite">Identité</a></li>
+      <li><a href="#clan">Le Clan</a></li>
+      <li><a href="#physique">Apparence</a></li>
+      <li><a href="#caractere">Caractère</a></li>
+      <li><a href="#histoire">Histoire</a></li>
+      <li><a href="#motivation">Motivations</a></li>
+      <li><a href="#objectifs">Objectifs</a></li>
+      <li><a href="#xp">Expériences</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-by">École d'<span>Hokkaido</span></div>
+  <h1 class="hero-title">
+    <span class="first">Clan</span><br>
+    <span class="last">Fujiwara</span>
+  </h1>
+  <p class="hero-sub">Archivistes Occultes · Gardiens du Savoir Ancien</p>
+  <div class="hero-divider"></div>
+  <div class="hero-tag-box hover-target">◈ &nbsp; Candidature Membre du Clan &nbsp; ◈</div>
+</section>
+
+<!-- IDENTITÉ -->
+<section id="identite" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Dossier</span>
+    <h2 class="section-title">Fiche d'<span>Identité</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="identity-card reveal">
+    <div class="identity-grid">
+      <div class="id-item hover-target" data-tip="Pseudo Discord">
+        <span class="id-label">Pseudo Discord</span>
+        <span class="id-value">Manatsu</span>
+      </div>
+      <div class="id-item hover-target" data-tip="Personnage joué">
+        <span class="id-label">Personnage</span>
+        <span class="id-value" style="color:var(--accent2);">Furan Fujiwara</span>
+      </div>
+      <div class="id-item hover-target">
+        <span class="id-label">Âge</span>
+        <span class="id-value">16 ans</span>
+      </div>
+      <div class="id-item hover-target">
+        <span class="id-label">Poste visé</span>
+        <span class="id-value">Membre du Clan</span>
+      </div>
+      <div class="id-item hover-target">
+        <span class="id-label">École</span>
+        <span class="id-value">Hokkaido</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESCRIPTION PHYSIQUE -->
+<section id="physique" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Apparence</span>
+    <h2 class="section-title">Description <span>Physique</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="clan-lore reveal">
+    <span class="clan-lore-title">◈ Apparence Générale</span>
+    <div class="clan-lore-text">
+      <p>Koa a une peau blanche, les cheveux noirs, les yeux verts. Il fait 1m84 et 75 kg. Le corps de Koa est assez athlétique musclé, mais pas excessivement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CARACTÈRE -->
+<section id="caractere" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Psychologie</span>
+    <h2 class="section-title">Le <span>Caractère</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="clan-lore reveal">
+    <span class="clan-lore-title">◈ Ce qu'il est vraiment</span>
+    <div class="clan-lore-text">
+      <p>◈ Furan est accro à la connaissance. Son but originel est d'atteindre l'omniscience. Il veut tout savoir, sur tout le monde, sur tous les clans, sur toutes les vérités que les autres pensent enterrées. Pas pour s'en vanter. Pour ne jamais être pris par surprise. Pour avoir toujours un coup d'avance.</p>
+      <div class="lore-sep"><span>◈</span></div>
+      <p>◈ En apparence, Furan est méthodique, calme, fiable. Il parle peu. Quand il parle, c'est précis. Les gens lui font confiance sans vraiment savoir pourquoi. Il a appris à se rendre indispensable sans se rendre visible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HISTOIRE / LORE PERSO -->
+<section id="histoire" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Histoire</span>
+    <h2 class="section-title">Lore du <span>Personnage</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="clan-lore reveal">
+    <span class="clan-lore-title">◈ Chapitre I</span>
+    <div class="clan-lore-text">
+      <p>Sato Fujiwara était l'enfant du patriarche.</p>
+      <p>Sato Fujiwara était un enfant qui attirait la malchance. 
+Partout où il allait cependant, il ne perdait pas espoir de vaincre sa poisse un jour en se baladant dans sa maison, il tomba sur une trappe en dessous d'un tapis, après avoir ouvert ce dernier, il tomba sur une immense bibliothèque où ça contenait de livre ancien qui racontait les traditions du clan </p>
+      <p>Sato fut ébahi en lisant ces livres et découvrit le monde de l'occulte et le monde de l'exorcisme. Il était inspiré par ces valeureux guerriers.</p>
+      <p>Après avoir lu les livre.
+Ils décidèrent dont de s'investir dans le monde de l'occulte de s'entraîner rigoureusement.</p>
+    </div>
+  </div>
+  <div class="clan-lore reveal" style="margin-top:2rem;">
+    <span class="clan-lore-title">◈ Chapitre II</span>
+    <div class="clan-lore-text">
+      <p>endant qu'il était au culte il était bien traité et beaucoup respecté par peur que le patriarche tombe sur eux.
+Lors d'un moment, son père décida de le convoquer.</p>
+      <div class="lore-sep"><span>◈</span></div>
+      <p>Pourquoi père m'avait, vous appelez surpris Sato. 
+Car j'ai décidé de te faire mûrir 
+Rétorqua le père.
+Par quelle moyen Père ?
+Questionna Sato
+En te faisant partir en voyage tout seul sans nourriture sans aide extérieure
+Tu devras trouver tout ça par toi-même.
+Informa son père.</p>
+      <div class="lore-sep"><span>◈</span></div>
+      <p>Sato a compris qu'il devait y aller sans ranchoner donc dès le lendemain, il décida donc de partir voyagé.
+Durant son voyage
+Il lui arriva une péripétie, c'était un fléau qui terrorisait une ville Sato décida alors. 
+D'aller le cherché en suivant, c'est trace occulte (il a obtenu cette faculté grâce. 
+Au entraînement). Peu a près les recherches, il trouva l'endroit où le fléau était, c'était. 
+Un bâtiment abandonné. Il arriva sûr. 
+Les lieux près à l'exorciser et pour voir si les livres disent vrai sur les fléaux,</p>
+      <div class="lore-sep"><span>◈</span></div>
+      <p>Il fut écarquillé face à ce fléau. 
+C'était le premier qu'il voyait, il était à la fois fasciné et terroriser. Sato s'approcha discrètement vers le fléau pour l'exorciser par surprise, le fléau n'avait toujours pas remarqué sa présence et là, le fléau se fit exorcisé. 
+Sans qu'il ne pût comprendre ce qu'il lui arrive à peu près cet événement, il décida de ce posée dans la ville pendant 2 jours. Après son repos, il décida de reprendre la route. Quand il fit arriver
+De retour au culte, il gagna l'estime de son père, c'est à ce moment sa carrière de cultiste commença réellement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MOTIVATION -->
+<section id="motivation" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Motivations</span>
+    <h2 class="section-title"><span>Motivation</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="clan-lore reveal" style="margin-top:2.5rem;">
+    <div class="clan-lore-text">
+      <p>Si je veux jouer Fujiwara, c'est parce que c'est un rp ou il faut rester le plus discret possible en plus c'est un rp intellectuel comme les kenjaku. on peut créer tout ce qu'on veut donc niveau naratif c'est interressant et aussi on connait pratiquement tout sur le monde et donc on peut faire des chose interressant comme faire du chantage entre les clans</p>
+      <div class="lore-sep"><span>◈</span></div>
+      <p>Ce qui me donne envie, c'est le côté stratégique et la discretion . Car les secrets du clan fujiwara le faite qu'on sait tout sa peut vraiment donner Beaucouq de possibiliter Rp 
+moin que Kenjaku mais sa reste énorme et le chantage peut être efficace quand on est fujiwara</p>
+    </div>
+  </div>
+</section>
+
+<!-- OBJECTIFS -->
+<section id="objectifs" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Objectifs</span>
+    <h2 class="section-title">Ce que j'apporte <span>au Clan</span></h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="reveal" style="margin-bottom:0.5rem;">
+    <span style="font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:5px; color:var(--accent2); text-transform:uppercase; display:block; margin-bottom:1rem; padding-bottom:0.6rem; border-bottom:1px solid rgba(58,128,170,0.12);">◈ Objectifs Personnels</span>
+  </div>
+
+  <div class="obj-list" style="margin-bottom:4rem;">
+    <div class="obj-item reveal hover-target">
+      <div class="obj-num">01</div>
+      <div>
+        <span class="obj-title">Court terme S'intégrer et apprendre</span>
+        <p class="obj-desc">Maîtriser les codes du clan Fujiwara, comprendre son fonctionnement interne et commencer à tisser des liens avec les autres membres. Participer aux premières missions pour établir ma réputation et démontrer l'utilité d'une approche analytique dans les confrontations avec les Fléaux.</p>
+      </div>
+    </div>
+    <div class="obj-item reveal hover-target">
+      <div class="obj-num">02</div>
+      <div>
+        <span class="obj-title">Moyen terme Avoir une place importante à Hokkaido</span>
+        <p class="obj-desc">Avoir une place importante a hokaido une place qui lui permetra de prendre des decision pour Hokkaido</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-bottom:0.5rem;">
+    <span style="font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:5px; color:var(--accent2); text-transform:uppercase; display:block; margin-bottom:1rem; padding-bottom:0.6rem; border-bottom:1px solid rgba(58,128,170,0.12);">◈ Objectifs RP Au service d'un seul but</span>
+  </div>
+
+  <div class="obj-item reveal hover-target" style="background:rgba(58,128,170,0.03); border:1px solid rgba(58,128,170,0.12); margin-bottom:1.5rem;">
+    <div class="obj-num" style="color:rgba(58,128,170,0.3);">∞</div>
+    <div>
+      <span class="obj-title" style="color:var(--white);">Objectif Final Atteindre l'Omniscience</span>
+      <p class="obj-desc">Furan est accro à la connaissance. Son but originel est d'être omniscient. Tout ce qu'il fait a une seule direction : savoir. Tout sur tout le monde, sur tous les clans, sur toutes les vérités que les autres pensent enterrées. Chaque objectif en dessous sert ça, directement ou indirectement.</p>
+    </div>
+  </div>
+
+  <div class="obj-list">
+
+    <div class="obj-item reveal hover-target">
+      <div class="obj-num">01</div>
+      <div>
+        <span class="obj-title">◈ Faire du chantage entre les clans</span>
+        <p class="obj-desc" style="margin-bottom:0.8rem;">Les Fujiwara savent tout sur tout le monde. Furan veut utiliser ce savoir pour faire pression sur les autres clans, orienter leurs décisions, créer des dettes et des loyautés forcées.</p>
+        <p class="obj-desc" style="margin-bottom:0.8rem;"><span style="color:var(--accent2);">Comment</span> En exploitant les archives secrètes du clan pour trouver ce que chaque famille veut cacher. Une vérité enfouie peut valoir plus qu'une armée.</p>
+        <p class="obj-desc"><span style="color:var(--accent2);">Pourquoi</span> Furan a besoin d'influence sur les autres clans. Si en plus il peut orienter leurs décisions sans jamais apparaître, encore mieux. Tout ça sert son objectif final.</p>
+      </div>
+    </div>
+
+    <div class="obj-item reveal hover-target">
+      <div class="obj-num">02</div>
+      <div>
+        <span class="obj-title">◈ Créer des artefacts de réincarnation</span>
+        <p class="obj-desc" style="margin-bottom:0.8rem;">Furan veut fabriquer des talismans capables de faire revenir des gens à la vie, un peu sur le même principe que les doigts de Sukuna. Des objets uniques, ultra rares, que personne d'autre ne peut produire.</p>
+        <p class="obj-desc"><span style="color:var(--accent2);">Pourquoi</span> Ramener quelqu'un à la vie en échange d'une partie de son énergie occulte lui servira pour son artefacte.</p>
+      </div>
+    </div>
+
+    <div class="obj-item reveal hover-target">
+      <div class="obj-num">03</div>
+      <div style="width:100%;">
+        <span class="obj-title">◈ Fonder le Conseil Inter-Clans</span>
+        <p class="obj-desc" style="margin-bottom:1.5rem;">Furan met en place une instance diplomatique réunissant les patriarches des clans de Tokyo et d'Hokkaido. En apparence, un espace de paix et de dialogue. En réalité, la scène où Furan tire les ficelles grâce aux archives secrètes du clan Fujiwara.</p>
+
+        <div class="conseil-card reveal hover-target">
+          <span class="conseil-tag">◈ Projet à développer en RP</span>
+          <span class="conseil-title">Le Grand Conseil des Clans</span>
+          <span class="conseil-subtitle">« Gardien de la Paix » ou comment contrôler ce que tout le monde croit libre</span>
+
+          <div class="conseil-grid">
+            <div class="conseil-block hover-target">
+              <span class="conseil-block-label">🏛 Ce qu'est le Conseil</span>
+              <p class="conseil-block-text">Une assemblée réunissant les patriarches de chaque clan, des deux régions. Un lieu neutre en apparence pour discuter des affaires qui concernent tous les clans. <strong>Litiges, alliances, captures, règles communes.</strong> Le genre d'endroit où l'on pense que les décisions sont collectives.</p>
+            </div>
+            <div class="conseil-block hover-target">
+              <span class="conseil-block-label">🎭 Le vrai contrôle</span>
+              <p class="conseil-block-text">Les archives du clan Fujiwara contiennent les secrets de chaque famille présente autour de la table. <strong>Furan sait ce que chacun veut cacher.</strong> Il oriente les débats, bloque ce qui le gêne, fait passer ce qui l'arrange — et si quelqu'un résiste, un dossier peut toujours ressurgir.</p>
+            </div>
+            <div class="conseil-block hover-target">
+              <span class="conseil-block-label">📋 Ce dont on y traite</span>
+              <p class="conseil-block-text">Membres capturés par des clans adverses, négociations de libération, alliances offensives ou défensives, <strong>nouvelles règles inter-clans</strong>, gestion des incidents entre écoles. Tout ce qui touche à l'équilibre du monde des exorcistes.</p>
+            </div>
+            <div class="conseil-block hover-target">
+              <span class="conseil-block-label">⏳ Conditions de déclenchement</span>
+              <p class="conseil-block-text">Ce projet s'active <strong>dès que Furan a une position d'influence à Hokkaido</strong> et qu'il a constitué assez de dossiers compromettants sur les autres clans. Le Conseil ne peut fonctionner que si personne ne soupçonne que ses archives sont entre les mains de Furan.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="obj-item reveal hover-target" style="border-bottom:none; padding-bottom:0;">
+      <div class="obj-num">04</div>
+      <div style="width:100%;">
+        <span class="obj-title">◈ Créer le plus grand Artéfact maudit</span>
+        <p class="obj-desc" style="margin-bottom:0.8rem;">Grace a l'énergie amagasiner le plus d'énergie possible en faisant des pactes 
+comme je te réincarne et tu mais tu me donne une partie de ton énergie occulte</p>
+        <p class="obj-desc"><span style="color:var(--accent2);">Résultat</span> l'artéfacte pourrais donnée l'omnissience — Furan est accro a la connaissance son but originel est d'être omniscien</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- XP -->
+<section id="xp" class="section-wrap">
+  <div class="section-header reveal">
+    <span class="section-label">Parcours</span>
+    <h2 class="section-title">Expériences <span>RP</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <ul class="xp-list reveal">
+    <li class="hover-target">Hyuga LDS</li>
+    <li class="hover-target">Kamei ATG JJK</li>
+    <li class="hover-target">Solve</li>
+    <li class="hover-target">FSC</li>
+    <li class="hover-target">Yugen Demon Slayer &amp; Black Clover</li>
+    <li class="hover-target">East Blue</li>
+    <li class="hover-target">Ryukai</li>
+    <li class="hover-target">SDA</li>
+  </ul>
+</section>
+
+<footer>
+  <div class="footer-logo hover-target">◈ FUJIWARA</div>
+  <p class="footer-sub">Candidature Officielle · Archivistes Occultes · École d'Hokkaido</p>
+</footer>
+
+</div>
+
+<script>
+// CURSEUR
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0, my=0, rx=0, ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cur.style.left=mx+'px'; cur.style.top=my+'px'; });
+(function animRing(){
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(animRing);
+})();
+
+// LOADING
+let pct=0;
+const bar=document.getElementById('loadBar');
+const pctEl=document.getElementById('loadPercent');
+const lines=['ll1','ll2','ll3','ll4','ll5','ll6'];
+const timings=[300,900,1500,2100,2700,3200];
+const pctTargets=[0,15,30,50,65,82,100];
+const pctTimes=[0,400,1000,1600,2200,2800,3400];
+pctTimes.forEach((time,i)=>{
+  setTimeout(()=>{
+    const target=pctTargets[i];
+    const iv=setInterval(()=>{ if(pct<target){pct++;bar.style.width=pct+'%';pctEl.textContent=pct+'%';}else clearInterval(iv); },18);
+  },time);
+});
+timings.forEach((t,i)=>setTimeout(()=>document.getElementById(lines[i]).classList.add('show'),t));
+setTimeout(()=>document.getElementById('loadBtn').classList.add('ready'),3700);
+function enterSite(){
+  document.getElementById('loading').classList.add('hide');
+  document.getElementById('main-content').classList.add('show');
+  setTimeout(()=>document.getElementById('loading').style.display='none',950);
+}
+
+// CANVAS PARTICULES BLEUES
+function rand(a,b){ return Math.random()*(b-a)+a; }
+const canvas=document.getElementById('rune-canvas');
+const ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+resize(); window.addEventListener('resize',resize);
+
+class Rune {
+  constructor(){ this.reset(); }
+  reset(){
+    this.x=rand(0,W); this.y=rand(-200,-20); this.baseX=this.x;
+    this.size=rand(7,18); this.speedY=rand(0.3,1.1); this.amp=rand(18,60);
+    this.freq=rand(0.005,0.01); this.phase=rand(0,Math.PI*2);
+    this.rot=rand(-0.3,0.3); this.rotSpd=rand(-0.004,0.004);
+    this.opacity=rand(0.1,0.38); this.life=rand(0.7,1);
+    this.decay=rand(0.0003,0.0008); this.t=0; this.form=Math.floor(rand(0,5));
+  }
+  update(){
+    this.t+=0.02; this.x=this.baseX+Math.sin(this.t*this.freq*60+this.phase)*this.amp;
+    this.y+=this.speedY; this.rot+=this.rotSpd; this.life-=this.decay;
+    if(this.y>H+50||this.life<=0) this.reset();
+  }
+  draw(){
+    const a=this.opacity*this.life;
+    ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.rot);
+    ctx.strokeStyle=`rgba(58,128,170,${a})`; ctx.lineWidth=0.6;
+    if(this.form===0){
+      ctx.beginPath();ctx.arc(0,0,this.size/2,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,-this.size/2);ctx.lineTo(0,this.size/2);ctx.stroke();
+    } else if(this.form===1){
+      ctx.beginPath();ctx.rect(-this.size/2,-this.size/3,this.size,this.size*0.65);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-this.size/4,-this.size/8);ctx.lineTo(this.size/4,-this.size/8);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-this.size/4,this.size/8);ctx.lineTo(this.size/4,this.size/8);ctx.stroke();
+    } else if(this.form===2){
+      ctx.beginPath();ctx.moveTo(0,-this.size/2);ctx.lineTo(this.size/3,0);ctx.lineTo(0,this.size/2);ctx.lineTo(-this.size/3,0);ctx.closePath();ctx.stroke();
+    } else if(this.form===3){
+      ctx.beginPath();ctx.moveTo(0,-this.size/2);ctx.lineTo(0,this.size/2);ctx.lineWidth=0.8;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-this.size/5,-this.size/6);ctx.lineTo(this.size/5,-this.size/6);ctx.lineWidth=0.4;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-this.size/5,this.size/6);ctx.lineTo(this.size/5,this.size/6);ctx.stroke();
+    } else {
+      ctx.beginPath();ctx.arc(0,0,this.size/2,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(0,0,this.size/5,0,Math.PI*2);ctx.fillStyle=`rgba(58,128,170,${a*0.3})`;ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+class EnergyTrail {
+  constructor(){ this.reset(); }
+  reset(){
+    this.x=rand(0,W);this.y=rand(-100,-10);this.baseX=this.x;
+    this.speedY=rand(0.4,1.5);this.amp=rand(12,45);this.freq=rand(0.005,0.012);
+    this.phase=rand(0,Math.PI*2);this.len=rand(30,90);
+    this.opacity=rand(0.06,0.18);this.life=1;this.decay=rand(0.003,0.008);this.t=0;
+  }
+  update(){
+    this.t+=0.03;this.x=this.baseX+Math.sin(this.t*this.freq*50+this.phase)*this.amp;
+    this.y+=this.speedY;this.life-=this.decay;
+    if(this.y>H+150||this.life<=0) this.reset();
+  }
+  draw(){
+    ctx.beginPath();
+    for(let i=0;i<=this.len;i+=3){
+      const py=this.y-i;
+      const px=this.x+Math.sin((this.y-i)*this.freq+this.phase+this.t)*this.amp*0.3;
+      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    const grad=ctx.createLinearGradient(this.x,this.y,this.x,this.y-this.len);
+    grad.addColorStop(0,`rgba(58,128,170,${this.opacity*this.life})`);
+    grad.addColorStop(1,'rgba(58,128,170,0)');
+    ctx.strokeStyle=grad;ctx.lineWidth=rand(0.3,0.9);ctx.lineCap='round';ctx.stroke();
+  }
+}
+
+class Particle{
+  constructor(){this.reset(true);}
+  reset(init){
+    this.x=rand(0,W);this.y=init?rand(0,H):-5;
+    this.s=rand(0.2,0.9);this.sy=rand(0.1,0.35);this.sx=rand(-0.07,0.07);
+    this.a=rand(0.03,0.1);this.life=1;this.decay=rand(0.0004,0.001);
+  }
+  update(){this.x+=this.sx;this.y+=this.sy;this.life-=this.decay;if(this.y>H+5||this.life<=0)this.reset(false);}
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.s,0,Math.PI*2);ctx.fillStyle=`rgba(58,128,170,${this.a*this.life})`;ctx.fill();}
+}
+
+const runes=Array.from({length:38},()=>new Rune());
+const trails=Array.from({length:22},()=>new EnergyTrail());
+const particles=Array.from({length:50},()=>new Particle());
+
+function animate(){
+  ctx.clearRect(0,0,W,H);
+  trails.forEach(t=>{t.update();t.draw();});
+  runes.forEach(r=>{r.update();r.draw();});
+  particles.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(animate);
+}
+animate();
+
+// REVEAL
+const reveals=document.querySelectorAll('.reveal');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.08});
+reveals.forEach(r=>obs.observe(r));
+</script>
+</body>
+</html>
